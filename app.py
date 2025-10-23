@@ -66,8 +66,16 @@ def load_data():
         if data is None:
             st.info("Loading dataset from cloud storage...")
             with st.spinner("Downloading dataset... This may take a moment."):
-                data = pd.read_csv(data_url)
-            st.success(f"Successfully loaded {len(data):,} records from cloud storage!")
+                try:
+                    data = pd.read_csv(data_url)
+                    st.success(f"Successfully loaded {len(data):,} records from cloud storage!")
+                except Exception as download_error:
+                    st.error(f"Failed to download from Google Drive: {str(download_error)}")
+                    st.info("Trying alternative Cloudinary URL...")
+                    # Fallback to Cloudinary URL
+                    fallback_url = "https://res.cloudinary.com/dhmisepol/raw/upload/v1761233741/new_data_pouz3l.csv"
+                    data = pd.read_csv(fallback_url)
+                    st.success(f"Successfully loaded {len(data):,} records from fallback source!")
         
         # Convert publish_time to datetime if it's not already
         if 'publish_time' in data.columns:
