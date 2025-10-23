@@ -40,7 +40,7 @@ st.markdown("""
 def load_data():
     """Load and cache the COVID-19 research data"""
     try:
-        # Load from local file only
+        # Load from new_data.csv only
         if os.path.exists('new_data.csv'):
             st.info("Loading COVID-19 research dataset...")
             with st.spinner("Loading data... This may take a moment for large files."):
@@ -101,7 +101,7 @@ def main():
     
     # Show data source info
     if os.path.exists('new_data.csv') and len(data) > 1000:
-        st.info(f"📊 Loaded full COVID-19 research dataset with {len(data):,} papers")
+        st.info(f"📊 Loaded COVID-19 research dataset with {len(data):,} papers")
     else:
         st.warning("📊 Using sample dataset for demonstration - Please ensure new_data.csv is in the project directory")
     
