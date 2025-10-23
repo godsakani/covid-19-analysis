@@ -40,19 +40,34 @@ st.markdown("""
 def load_data():
     """Load and cache the COVID-19 research data"""
     try:
-        # URL of the hosted dataset
-        data_url = "https://res.cloudinary.com/dhmisepol/raw/upload/v1761233741/new_data_pouz3l.csv"
+        # URL of the hosted dataset (Google Drive direct download link)
+        # Convert Google Drive sharing link to direct download link
+        file_id = "1r4F9yrAddNCvPygVAzwDKxxGJNzHf72F"
+        data_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+        
+        data = None
         
         # Try to load from local file first (for development)
         if os.path.exists('new_data.csv'):
-            st.info("Loading from local file...")
-            data = pd.read_csv('new_data.csv')
-        else:
-            # Load from hosted URL (for deployment)
+            try:
+                st.info("Loading from local file...")
+                data = pd.read_csv('new_data.csv')
+                # Check if the local file has actual data
+                if len(data) == 0:
+                    st.warning("Local file is empty, switching to remote data...")
+                    data = None
+                else:
+                    st.success(f"Successfully loaded {len(data):,} records from local file!")
+            except Exception as e:
+                st.warning(f"Error reading local file: {str(e)}. Switching to remote data...")
+                data = None
+        
+        # If local file doesn't exist or is empty/corrupted, load from remote URL
+        if data is None:
             st.info("Loading dataset from cloud storage...")
             with st.spinner("Downloading dataset... This may take a moment."):
                 data = pd.read_csv(data_url)
-            st.success(f"Successfully loaded {len(data):,} records!")
+            st.success(f"Successfully loaded {len(data):,} records from cloud storage!")
         
         # Convert publish_time to datetime if it's not already
         if 'publish_time' in data.columns:
