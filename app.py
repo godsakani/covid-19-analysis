@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from wordcloud import WordCloud
 import warnings
 import os
-warnin
+warnings.filterwarnings('ignore')
 
 # Configure page
 st.set_page_config(
