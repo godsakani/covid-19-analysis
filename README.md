@@ -1,5 +1,7 @@
 # CORD-19 Data Explorer 🦠
 
+🚀 **Live Demo**: [https://covid-19-analysis-aeql88fgdehfnzkijiyebz.streamlit.app/](https://covid-19-analysis-aeql88fgdehfnzkijiyebz.streamlit.app/)
+
 An interactive Streamlit application for exploring COVID-19 research papers from the CORD-19 dataset.
 
 ## 📋 Overview
