@@ -7,7 +7,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from wordcloud import WordCloud
 import warnings
-warnings.filterwarnings('ignore')
+import os
+warnin
 
 # Configure page
 st.set_page_config(
@@ -39,16 +40,50 @@ st.markdown("""
 def load_data():
     """Load and cache the COVID-19 research data"""
     try:
-        data = pd.read_csv('new_data.csv')
+        # URL of the hosted dataset
+        data_url = "https://res.cloudinary.com/dhmisepol/raw/upload/v1761233741/new_data_pouz3l.csv"
+        
+        # Try to load from local file first (for development)
+        if os.path.exists('new_data.csv'):
+            st.info("Loading from local file...")
+            data = pd.read_csv('new_data.csv')
+        else:
+            # Load from hosted URL (for deployment)
+            st.info("Loading dataset from cloud storage...")
+            with st.spinner("Downloading dataset... This may take a moment."):
+                data = pd.read_csv(data_url)
+            st.success(f"Successfully loaded {len(data):,} records!")
+        
         # Convert publish_time to datetime if it's not already
         if 'publish_time' in data.columns:
             data['publish_time'] = pd.to_datetime(data['publish_time'], errors='coerce')
         if 'publish_year' not in data.columns and 'publish_time' in data.columns:
             data['publish_year'] = data['publish_time'].dt.year
         return data
-    except FileNotFoundError:
-        st.error("Data file 'new_data.csv' not found. Please ensure the file is in the correct directory.")
-        return None
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        st.warning("Loading sample data as fallback...")
+        return create_sample_data()
+
+def create_sample_data():
+    """Create sample data for demonstration when the full dataset is not available"""
+    np.random.seed(42)
+    n_samples = 1000
+    
+    journals = ['Nature', 'Science', 'Cell', 'The Lancet', 'NEJM', 'PLOS ONE', 'BMJ', 'JAMA']
+    sources = ['PubMed', 'bioRxiv', 'medRxiv', 'ArXiv']
+    
+    sample_data = pd.DataFrame({
+        'title': [f'COVID-19 Research Paper {i+1}' for i in range(n_samples)],
+        'journal': np.random.choice(journals, n_samples),
+        'source_x': np.random.choice(sources, n_samples),
+        'publish_year': np.random.choice(range(2019, 2024), n_samples),
+        'publish_time': pd.date_range('2019-01-01', '2023-12-31', periods=n_samples),
+        'abstract': [f'This is a sample abstract for paper {i+1} about COVID-19 research.' for i in range(n_samples)],
+        'abs_word_count': np.random.randint(50, 300, n_samples)
+    })
+    
+    return sample_data
 
 def main():
     # Header
@@ -59,6 +94,12 @@ def main():
     data = load_data()
     if data is None:
         st.stop()
+    
+    # Show data source info
+    if len(data) > 1000:
+        st.info(f"📊 Loaded full dataset with {len(data):,} research papers")
+    else:
+        st.warning("📊 Using sample dataset for demonstration")
     
     # Sidebar controls
     st.sidebar.header("🎛️ Controls")
