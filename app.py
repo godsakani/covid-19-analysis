@@ -40,51 +40,32 @@ st.markdown("""
 def load_data():
     """Load and cache the COVID-19 research data"""
     try:
-        # URL of the hosted dataset (Google Drive direct download link)
-        # Convert Google Drive sharing link to direct download link
-        file_id = "1r4F9yrAddNCvPygVAzwDKxxGJNzHf72F"
-        data_url = f"https://drive.google.com/uc?export=download&id={file_id}"
-        
-        data = None
-        
-        # Try to load from local file first (for development)
+        # Load from local file only
         if os.path.exists('new_data.csv'):
-            try:
-                st.info("Loading from local file...")
+            st.info("Loading COVID-19 research dataset...")
+            with st.spinner("Loading data... This may take a moment for large files."):
                 data = pd.read_csv('new_data.csv')
-                # Check if the local file has actual data
-                if len(data) == 0:
-                    st.warning("Local file is empty, switching to remote data...")
-                    data = None
-                else:
-                    st.success(f"Successfully loaded {len(data):,} records from local file!")
-            except Exception as e:
-                st.warning(f"Error reading local file: {str(e)}. Switching to remote data...")
-                data = None
-        
-        # If local file doesn't exist or is empty/corrupted, load from remote URL
-        if data is None:
-            st.info("Loading dataset from cloud storage...")
-            with st.spinner("Downloading dataset... This may take a moment."):
-                try:
-                    data = pd.read_csv(data_url)
-                    st.success(f"Successfully loaded {len(data):,} records from cloud storage!")
-                except Exception as download_error:
-                    st.error(f"Failed to download from Google Drive: {str(download_error)}")
-                    st.info("Trying alternative Cloudinary URL...")
-                    # Fallback to Cloudinary URL
-                    fallback_url = "https://res.cloudinary.com/dhmisepol/raw/upload/v1761233741/new_data_pouz3l.csv"
-                    data = pd.read_csv(fallback_url)
-                    st.success(f"Successfully loaded {len(data):,} records from fallback source!")
-        
-        # Convert publish_time to datetime if it's not already
-        if 'publish_time' in data.columns:
-            data['publish_time'] = pd.to_datetime(data['publish_time'], errors='coerce')
-        if 'publish_year' not in data.columns and 'publish_time' in data.columns:
-            data['publish_year'] = data['publish_time'].dt.year
-        return data
+            
+            if len(data) == 0:
+                st.error("The new_data.csv file is empty!")
+                return create_sample_data()
+            else:
+                st.success(f"Successfully loaded {len(data):,} research papers!")
+                
+                # Convert publish_time to datetime if it's not already
+                if 'publish_time' in data.columns:
+                    data['publish_time'] = pd.to_datetime(data['publish_time'], errors='coerce')
+                if 'publish_year' not in data.columns and 'publish_time' in data.columns:
+                    data['publish_year'] = data['publish_time'].dt.year
+                
+                return data
+        else:
+            st.error("new_data.csv file not found! Please ensure the file is in the project directory.")
+            st.info("Creating sample data for demonstration...")
+            return create_sample_data()
+            
     except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
+        st.error(f"Error loading new_data.csv: {str(e)}")
         st.warning("Loading sample data as fallback...")
         return create_sample_data()
 
@@ -119,10 +100,10 @@ def main():
         st.stop()
     
     # Show data source info
-    if len(data) > 1000:
-        st.info(f"📊 Loaded full dataset with {len(data):,} research papers")
+    if os.path.exists('new_data.csv') and len(data) > 1000:
+        st.info(f"📊 Loaded full COVID-19 research dataset with {len(data):,} papers")
     else:
-        st.warning("📊 Using sample dataset for demonstration")
+        st.warning("📊 Using sample dataset for demonstration - Please ensure new_data.csv is in the project directory")
     
     # Sidebar controls
     st.sidebar.header("🎛️ Controls")
